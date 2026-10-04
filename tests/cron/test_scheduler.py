@@ -356,8 +356,8 @@ class TestDeliverResultWrapping:
         )
         return media_file.resolve()
 
-    def test_delivery_wraps_content_with_header_and_footer(self):
-        """Delivered content should include task name header and agent-invisible note."""
+    def test_delivery_appends_metadata_footer_after_content(self):
+        """Useful content should precede cron metadata in notification previews."""
         from gateway.config import Platform
 
         pconfig = MagicMock()
@@ -382,6 +382,8 @@ class TestDeliverResultWrapping:
         assert "-------------" in sent_content
         assert "Here is today's summary." in sent_content
         assert "To stop or manage this job" in sent_content
+        assert sent_content.startswith("Here is today's summary.\n\n-------------\n")
+        assert sent_content.index("Here is today's summary.") < sent_content.index("Cronjob Response: daily-report")
 
 
     def test_relay_fronted_home_uses_relay_config_and_live_adapter(self, monkeypatch, tmp_path):

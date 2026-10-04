@@ -45,6 +45,7 @@ from gateway.platforms.yuanbao import (
     PatchAnchorsMiddleware,
     DispatchMiddleware,
     InboundPipelineBuilder,
+    MessageSender,
     YuanbaoAdapter,
     _MIN_RESOLVE_CONCURRENCY,
     _MAX_RESOLVE_CONCURRENCY,
@@ -111,6 +112,27 @@ def make_json_push(
         push["CallbackCommand"] = "Group.CallbackAfterSendMsg"
         push["GroupId"] = group_code
     return json.dumps(push).encode("utf-8")
+
+
+class TestCronWrapperStripping:
+    def test_strips_metadata_footer_format(self):
+        wrapped = (
+            "Useful report\n\n-------------\n"
+            "Cronjob Response: daily-report\n"
+            "(job_id: job-123)\n"
+            'To stop or manage this job, send me a new message (e.g. "stop reminder daily-report").'
+        )
+        assert MessageSender.strip_cron_wrapper(wrapped) == "Useful report"
+
+    def test_strips_legacy_header_format(self):
+        wrapped = (
+            "Cronjob Response: daily-report\n"
+            "(job_id: job-123)\n"
+            "-------------\n\n"
+            "Useful report\n\n"
+            'To stop or manage this job, send me a new message (e.g. "stop reminder daily-report").'
+        )
+        assert MessageSender.strip_cron_wrapper(wrapped) == "Useful report"
 
 
 # ============================================================

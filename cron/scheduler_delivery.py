@@ -1941,7 +1941,8 @@ def _deliver_result(
 
     from gateway.config import load_gateway_config
 
-    # Wrap with header/footer unless cron.wrap_response: false.
+    # Append a metadata footer unless cron.wrap_response: false.  Keeping the
+    # useful content first preserves Discord/mobile notification previews.
     wrap_response = True
     user_cfg = None
     with contextlib.suppress(Exception):
@@ -1955,10 +1956,10 @@ def _deliver_result(
     if wrap_response:
         task_name = job.get("name", job["id"])
         delivery_content = (
+            f"{content}\n\n"
+            f"-------------\n"
             f"Cronjob Response: {task_name}\n"
             f"(job_id: {job.get('id', '')})\n"
-            f"-------------\n\n"
-            f"{content}\n\n"
             "To stop or manage this job, send me a new message "
             f"(e.g. \"stop reminder {task_name}\")."
         )

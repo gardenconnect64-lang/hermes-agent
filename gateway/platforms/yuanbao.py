@@ -2551,6 +2551,17 @@ class MessageSender:
     @staticmethod
     def strip_cron_wrapper(content: str) -> str:
         """Strip the scheduler's cron header/footer wrapper; unchanged when the shape doesn't match."""
+        footer_marker = "\n\n-------------\nCronjob Response: "
+        footer_pos = content.rfind(footer_marker)
+        if footer_pos >= 0:
+            footer = content[footer_pos + 2:]
+            if "\n(job_id: " not in footer or "\nTo stop or manage this job" not in footer:
+                return content
+            body = content[:footer_pos].strip()
+            return body or content
+
+        # Backward compatibility for deliveries produced before metadata moved
+        # from the notification-leading header to a trailing footer.
         if not content.startswith("Cronjob Response: "):
             return content
         divider = "\n-------------\n\n"
